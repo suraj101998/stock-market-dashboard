@@ -1,6 +1,6 @@
 // Sample service to fetch real-time stock data
 
-const API_KEY = 'YOUR_IEX_CLOUD_API_KEY';
+const API_KEY = 'pk_7d8247a072f140c784a0f0d4e7b46837';
 const BASE_URL = 'https://cloud.iexapis.com/stable';
 
 export const fetchRealTimeData = async () => {
