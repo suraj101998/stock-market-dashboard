@@ -1,42 +1,3 @@
-// // Register.js
-
-// import React, { useState } from 'react';
-// import { register } from '../../services/auth';
-
-// const RegisterComponent = () => {
-//   const [email, setEmail] = useState('');
-//   const [password, setPassword] = useState('');
-
-//   const handleRegister = async () => {
-//     try {
-//       await register(email, password);
-//       // Optionally, you might want to auto-login the user after registration
-//       // const userData = await login(email, password);
-//       // onAuth(userData);
-//     } catch (error) {
-//       console.error('Registration failed:', error);
-//     }
-//   };
-
-//   return (
-//     <div>
-//       <h2>Register</h2>
-//       <label>
-//         Email:
-//         <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} />
-//       </label>
-//       <label>
-//         Password:
-//         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-//       </label>
-//       <button onClick={handleRegister}>Register</button>
-//     </div>
-//   );
-// };
-
-// export default RegisterComponent;
-
-
 // Register.js
 import React, { useState } from 'react';
 import { register } from '../../services/auth';
@@ -62,7 +23,7 @@ const Register = ({ onRegister }) => {
   };
 
   return (
-    <div>
+    <div style={{ textAlign: 'center', margin: '20px' }}>
       <h2>Register</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <label>Email: </label>
@@ -72,13 +33,11 @@ const Register = ({ onRegister }) => {
       <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
       <br />
       <label>Confirm Password: </label>
-      <input
-        type="password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-      />
+      <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
       <br />
-      <button onClick={handleRegister}>Register</button>
+      <button style={{ backgroundColor: '#4caf50', color: 'white', padding: '10px 20px', fontSize: '16px', border: 'none', cursor: 'pointer' }} onClick={handleRegister}>
+        Register
+      </button>
     </div>
   );
 };

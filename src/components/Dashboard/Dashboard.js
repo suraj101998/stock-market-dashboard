@@ -1,8 +1,9 @@
+// Dashboard.js
 import React, { useEffect, useState } from 'react';
 import StockWidget from './StockWidget';
 import { fetchRealTimeData } from '../../services/stockService';
 
-const Dashboard = () => {
+const Dashboard = ({ onLogout }) => {
   const [realTimeData, setRealTimeData] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('symbol');
@@ -14,7 +15,7 @@ const Dashboard = () => {
       try {
         const data = await fetchRealTimeData();
         setRealTimeData(data);
-        setFilteredData(data); // Initialize filteredData with the fetched data
+        setFilteredData(data);
       } catch (error) {
         console.error('Error fetching real-time data', error);
       }
@@ -24,12 +25,10 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    // Filter stocks based on the search term
     const filteredStocks = realTimeData.filter((stock) =>
       stock.symbol.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Sort stocks based on the selected criteria
     const sortedStocks = filteredStocks.sort((a, b) => {
       const aValue = sortBy === 'latestPrice' ? parseFloat(a[sortBy]) : a[sortBy];
       const bValue = sortBy === 'latestPrice' ? parseFloat(b[sortBy]) : b[sortBy];
@@ -59,7 +58,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div>
+    <div style={{ margin: '20px' }}>
       <h2>Dashboard</h2>
       <div>
         <label>Search: </label>
@@ -70,7 +69,6 @@ const Dashboard = () => {
         <select value={sortBy} onChange={handleSort}>
           <option value="symbol">Symbol</option>
           <option value="latestPrice">Latest Price</option>
-          {/* Add more options as needed */}
         </select>
         <select value={sortOrder} onChange={handleSortOrder}>
           <option value="asc">Ascending</option>
@@ -80,6 +78,9 @@ const Dashboard = () => {
       {filteredData.map((stock) => (
         <StockWidget key={stock.symbol} stock={stock} />
       ))}
+      <button style={{ backgroundColor: '#ff0000', color: 'white', padding: '10px 20px', fontSize: '16px', border: 'none', cursor: 'pointer', marginTop: '20px' }} onClick={onLogout}>
+        Logout
+      </button>
     </div>
   );
 };
