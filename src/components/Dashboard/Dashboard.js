@@ -1,21 +1,56 @@
-// Dashboard.js
 import React, { useEffect, useState } from 'react';
 import StockWidget from './StockWidget';
 import { fetchRealTimeData } from '../../services/stockService';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+
+const dashboardContainerStyle = {
+  margin: '20px',
+  textAlign: 'center',
+};
+
+const inputStyle = {
+  margin: '10px 0',
+  padding: '8px',
+  fontSize: '16px',
+};
+
+const selectStyle = {
+  margin: '10px 0',
+  padding: '8px',
+  fontSize: '16px',
+};
+
+const buttonStyle = {
+  backgroundColor: '#ff0000',
+  color: 'white',
+  padding: '10px 20px',
+  fontSize: '16px',
+  border: 'none',
+  cursor: 'pointer',
+  transition: 'background-color 0.3s',
+  marginTop: '20px',
+};
+
+const buttonHoverStyle = {
+  backgroundColor: '#d40000',
+};
 
 const Dashboard = ({ onLogout }) => {
-  const [realTimeData, setRealTimeData] = useState([]);
+  const [allRealTimeData, setAllRealTimeData] = useState([]);
+  const [displayedWidgets, setDisplayedWidgets] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('symbol');
   const [sortOrder, setSortOrder] = useState('asc');
-  const [filteredData, setFilteredData] = useState([]);
+  const [selectedWidgets, setSelectedWidgets] = useState([]);
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await fetchRealTimeData();
-        setRealTimeData(data);
-        setFilteredData(data);
+        setAllRealTimeData(data);
+        setDisplayedWidgets(data); // Initially, displayed widgets are the same as all data
       } catch (error) {
         console.error('Error fetching real-time data', error);
       }
@@ -25,63 +60,110 @@ const Dashboard = ({ onLogout }) => {
   }, []);
 
   useEffect(() => {
-    const filteredStocks = realTimeData.filter((stock) =>
-      stock.symbol.toLowerCase().includes(searchTerm.toLowerCase())
+    // Apply filters and sorting logic to allRealTimeData
+    let filteredStocks = [...allRealTimeData];
+
+    filteredStocks = filteredStocks.filter(
+      (stock) => stock.symbol.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const sortedStocks = filteredStocks.sort((a, b) => {
+    filteredStocks = filteredStocks.sort((a, b) => {
       const aValue = sortBy === 'latestPrice' ? parseFloat(a[sortBy]) : a[sortBy];
       const bValue = sortBy === 'latestPrice' ? parseFloat(b[sortBy]) : b[sortBy];
 
-      if (sortOrder === 'asc') {
-        return aValue - bValue;
-      } else {
-        return bValue - aValue;
-      }
+      return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
     });
 
-    setFilteredData(sortedStocks);
-  }, [realTimeData, searchTerm, sortBy, sortOrder]);
+    setDisplayedWidgets(filteredStocks);
+  }, [allRealTimeData, searchTerm, sortBy, sortOrder]);
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
   };
 
   const handleSort = (event) => {
-    const selectedSortBy = event.target.value;
-    setSortBy(selectedSortBy);
+    setSortBy(event.target.value);
   };
 
   const handleSortOrder = (event) => {
-    const selectedSortOrder = event.target.value;
-    setSortOrder(selectedSortOrder);
+    setSortOrder(event.target.value);
+  };
+
+  const handleWidgetSelection = (symbol) => {
+    // Toggle widget selection
+    if (selectedWidgets.includes(symbol)) {
+      setSelectedWidgets(selectedWidgets.filter((widget) => widget !== symbol));
+    } else {
+      setSelectedWidgets([...selectedWidgets, symbol]);
+    }
+  };
+
+  const handleRemoveWidgets = () => {
+    // Filter out selected widgets from displayed widgets
+    const updatedWidgets = displayedWidgets.filter((stock) => !selectedWidgets.includes(stock.symbol));
+    setDisplayedWidgets(updatedWidgets);
+    setSelectedWidgets([]); // Clear selected widgets after removal
+  };
+
+  const handleDragEnd = (result) => {
+    // Check if the drop was successful and reorder displayedWidgets accordingly
+    if (result.destination) {
+      const updatedWidgets = [...displayedWidgets];
+      const [movedWidget] = updatedWidgets.splice(result.source.index, 1);
+      updatedWidgets.splice(result.destination.index, 0, movedWidget);
+      setDisplayedWidgets(updatedWidgets);
+    }
   };
 
   return (
-    <div style={{ margin: '20px' }}>
-      <h2>Dashboard</h2>
-      <div>
-        <label>Search: </label>
-        <input type="text" value={searchTerm} onChange={handleSearch} />
+    <DndProvider backend={HTML5Backend}>
+      <div style={dashboardContainerStyle}>
+        <h2>Dashboard</h2>
+        <div>
+          <label>Search: </label>
+          <input style={inputStyle} type="text" value={searchTerm} onChange={handleSearch} />
+        </div>
+        <div>
+          <label>Sort By: </label>
+          <select style={selectStyle} value={sortBy} onChange={handleSort}>
+            <option value="symbol">Symbol</option>
+            <option value="latestPrice">Latest Price</option>
+          </select>
+          <select style={selectStyle} value={sortOrder} onChange={handleSortOrder}>
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+        <div>
+          {displayedWidgets.map((stock, index) => (
+            <StockWidget
+              key={stock.symbol}
+              stock={stock}
+              index={index}
+              handleWidgetSelection={handleWidgetSelection}
+              isSelected={selectedWidgets.includes(stock.symbol)}
+              handleDragEnd={handleDragEnd}
+            />
+          ))}
+        </div>
+        <button
+          style={{ ...buttonStyle, ...(isButtonHovered && buttonHoverStyle) }}
+          onClick={onLogout}
+          onMouseOver={() => setIsButtonHovered(true)}
+          onMouseOut={() => setIsButtonHovered(false)}
+        >
+          Logout
+        </button>
+        <button
+          style={{ ...buttonStyle, backgroundColor: 'blue' }}
+          onClick={handleRemoveWidgets}
+          onMouseOver={() => setIsButtonHovered(true)}
+          onMouseOut={() => setIsButtonHovered(false)}
+        >
+          Remove Selected Widgets
+        </button>
       </div>
-      <div>
-        <label>Sort By: </label>
-        <select value={sortBy} onChange={handleSort}>
-          <option value="symbol">Symbol</option>
-          <option value="latestPrice">Latest Price</option>
-        </select>
-        <select value={sortOrder} onChange={handleSortOrder}>
-          <option value="asc">Ascending</option>
-          <option value="desc">Descending</option>
-        </select>
-      </div>
-      {filteredData.map((stock) => (
-        <StockWidget key={stock.symbol} stock={stock} />
-      ))}
-      <button style={{ backgroundColor: '#ff0000', color: 'white', padding: '10px 20px', fontSize: '16px', border: 'none', cursor: 'pointer', marginTop: '20px' }} onClick={onLogout}>
-        Logout
-      </button>
-    </div>
+    </DndProvider>
   );
 };
 
