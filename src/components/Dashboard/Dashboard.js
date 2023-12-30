@@ -1,42 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, FlatList, Switch, TouchableOpacity } from 'react-native';
 import StockWidget from './StockWidget';
 import { fetchRealTimeData } from '../../services/stockService';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ThemeProvider, useTheme } from '../../contexts/ThemeContext';
 import { NotificationProvider, useNotifications } from '../../contexts/NotificationContext';
-
-const dashboardContainerStyle = {
-  margin: '20px',
-  textAlign: 'center',
-};
-
-const inputStyle = {
-  margin: '10px 0',
-  padding: '8px',
-  fontSize: '16px',
-};
-
-const selectStyle = {
-  margin: '10px 0',
-  padding: '8px',
-  fontSize: '16px',
-};
-
-const buttonStyle = {
-  backgroundColor: '#ff0000',
-  color: 'white',
-  padding: '10px 20px',
-  fontSize: '16px',
-  border: 'none',
-  cursor: 'pointer',
-  transition: 'background-color 0.3s',
-  marginTop: '20px',
-};
-
-const buttonHoverStyle = {
-  backgroundColor: '#d40000',
-};
+import { Picker } from '@react-native-picker/picker';
 
 const Dashboard = ({ onLogout }) => {
   const { theme, toggleTheme } = useTheme();
@@ -78,19 +46,19 @@ const Dashboard = ({ onLogout }) => {
       return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
     });
 
-    setDisplayedWidgets(filteredStocks);
+    setDisplayedWidgets([...filteredStocks]);
   }, [allRealTimeData, searchTerm, sortBy, sortOrder]);
 
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
+  const handleSearch = (text) => {
+    setSearchTerm(text);
   };
 
-  const handleSort = (event) => {
-    setSortBy(event.target.value);
+  const handleSort = (value) => {
+    setSortBy(value);
   };
 
-  const handleSortOrder = (event) => {
-    setSortOrder(event.target.value);
+  const handleSortOrder = (value) => {
+    setSortOrder(value);
   };
 
   const handleWidgetSelection = (symbol) => {
@@ -105,104 +73,156 @@ const Dashboard = ({ onLogout }) => {
   const handleRemoveWidgets = () => {
     // Filter out selected widgets from displayed widgets
     const updatedWidgets = displayedWidgets.filter((stock) => !selectedWidgets.includes(stock.symbol));
-    setDisplayedWidgets(updatedWidgets);
+    setDisplayedWidgets([...updatedWidgets]);
     setSelectedWidgets([]); // Clear selected widgets after removal
-  };
-
-  const handleDragEnd = (result) => {
-    // Check if the drop was successful and reorder displayedWidgets accordingly
-    if (result.destination) {
-      const updatedWidgets = [...displayedWidgets];
-      const [movedWidget] = updatedWidgets.splice(result.source.index, 1);
-      updatedWidgets.splice(result.destination.index, 0, movedWidget);
-      setDisplayedWidgets(updatedWidgets);
-    }
   };
 
   return (
     <ThemeProvider>
       <NotificationProvider>
-        <DndProvider backend={HTML5Backend}>
-          <div style={{ ...dashboardContainerStyle, background: theme === 'light' ? '#fff' : '#333', color: theme === 'light' ? '#000' : '#fff' }}>
-            <h2>Dashboard</h2>
-  
-            {/* Theme Selector */}
-            <div>
-              <label>Theme:</label>
-              <select value={theme} onChange={toggleTheme}>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </div>
-  
-            {/* Notifications Toggle */}
-            <div>
-              <label>Notifications:</label>
-              <input
-                type="checkbox"
-                checked={enableNotifications}
-                onChange={toggleNotifications}
+        <View style={styles.dashboardContainer}>
+          <Text style={styles.heading}>Dashboard</Text>
+
+          {/* Theme Selector */}
+          <View style={styles.section}>
+            <Text>Theme:</Text>
+            <Picker
+              selectedValue={theme}
+              onValueChange={toggleTheme}
+              style={styles.picker}
+            >
+              <Picker.Item label="Light" value="light" />
+              <Picker.Item label="Dark" value="dark" />
+            </Picker>
+          </View>
+
+          {/* Notifications Toggle */}
+          <View style={styles.section}>
+            <Text>Notifications:</Text>
+            <Switch
+              value={enableNotifications}
+              onValueChange={toggleNotifications}
+            />
+          </View>
+
+          {/* Search */}
+          <View style={styles.section}>
+            <Text>Search: </Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Search"
+              value={searchTerm}
+              onChangeText={handleSearch}
+            />
+          </View>
+
+          {/* Sort By */}
+          <View style={styles.section}>
+            <Text>Sort By: </Text>
+            <Picker
+              selectedValue={sortBy}
+              onValueChange={(value) => handleSort(value)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Symbol" value="symbol" />
+              <Picker.Item label="Latest Price" value="latestPrice" />
+            </Picker>
+            <Picker
+              selectedValue={sortOrder}
+              onValueChange={(value) => handleSortOrder(value)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Ascending" value="asc" />
+              <Picker.Item label="Descending" value="desc" />
+            </Picker>
+          </View>
+
+          {/* Displayed Widgets */}
+          <FlatList
+            data={displayedWidgets}
+            keyExtractor={(item) => item.symbol}
+            renderItem={({ item, index }) => (
+              <StockWidget
+                stock={item}
+                index={index}
+                handleWidgetSelection={handleWidgetSelection}
+                isSelected={selectedWidgets.includes(item.symbol)}
               />
-            </div>
-  
-            {/* Search */}
-            <div>
-              <label>Search: </label>
-              <input style={inputStyle} type="text" value={searchTerm} onChange={handleSearch} />
-            </div>
-  
-            {/* Sort By */}
-            <div>
-              <label>Sort By: </label>
-              <select style={selectStyle} value={sortBy} onChange={handleSort}>
-                <option value="symbol">Symbol</option>
-                <option value="latestPrice">Latest Price</option>
-              </select>
-              <select style={selectStyle} value={sortOrder} onChange={handleSortOrder}>
-                <option value="asc">Ascending</option>
-                <option value="desc">Descending</option>
-              </select>
-            </div>
-  
-            {/* Displayed Widgets */}
-            <div>
-              {displayedWidgets.map((stock, index) => (
-                <StockWidget
-                  key={stock.symbol}
-                  stock={stock}
-                  index={index}
-                  handleWidgetSelection={handleWidgetSelection}
-                  isSelected={selectedWidgets.includes(stock.symbol)}
-                  handleDragEnd={handleDragEnd}
-                />
-              ))}
-            </div>
-  
-            {/* Logout Button */}
-            <button
-              style={{ ...buttonStyle, ...(isButtonHovered && buttonHoverStyle) }}
-              onClick={onLogout}
-              onMouseOver={() => setIsButtonHovered(true)}
-              onMouseOut={() => setIsButtonHovered(false)}
-            >
-              Logout
-            </button>
-  
-            {/* Remove Selected Widgets Button */}
-            <button
-              style={{ ...buttonStyle, backgroundColor: 'blue', marginTop: '10px' }}
-              onClick={handleRemoveWidgets}
-              onMouseOver={() => setIsButtonHovered(true)}
-              onMouseOut={() => setIsButtonHovered(false)}
-            >
-              Remove Selected Widgets
-            </button>
-          </div>
-        </DndProvider>
+            )}
+          />
+
+          {/* Logout Button */}
+          <TouchableOpacity
+            style={{ ...styles.button, backgroundColor: 'red', ...(isButtonHovered && styles.buttonHover) }}
+            onPress={onLogout}
+            underlayColor="#45a049" // Set the color when pressed
+            onMouseOver={() => setIsButtonHovered(true)}
+            onMouseOut={() => setIsButtonHovered(false)}
+          >
+            <Text style={styles.buttonText}>Logout</Text>
+          </TouchableOpacity>
+
+          {/* Remove Selected Widgets Button */}
+          <TouchableOpacity
+            style={{ ...styles.button, backgroundColor: 'blue', marginTop: 10 }}
+            onPress={handleRemoveWidgets}
+            underlayColor="darkblue" // Set the color when pressed
+            onMouseOver={() => setIsButtonHovered(true)}
+            onMouseOut={() => setIsButtonHovered(false)}
+          >
+            <Text style={styles.buttonText}>Remove Selected Widgets</Text>
+          </TouchableOpacity>
+        </View>
       </NotificationProvider>
     </ThemeProvider>
   );
-  
 };
+
+const styles = StyleSheet.create({
+  dashboardContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 20,
+  },
+  heading: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  section: {
+    marginBottom: 10,
+    width: '100%',
+  },
+  input: {
+    margin: 10,
+    padding: 8,
+    fontSize: 16,
+    borderWidth: 1,
+    width: '100%',
+  },
+  picker: {
+    height: 50,
+    width: 150,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 4,
+  },
+  button: {
+    padding: 10,
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  buttonHover: {
+    backgroundColor: 'rgba(255, 0, 0, 0.8)', // Lighter red when hovered
+  },
+});
 
 export default Dashboard;

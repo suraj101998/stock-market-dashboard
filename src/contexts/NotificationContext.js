@@ -1,5 +1,4 @@
-// NotificationContext.js
-import { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext } from 'react';
 
 const NotificationContext = createContext();
 
@@ -10,8 +9,13 @@ export const NotificationProvider = ({ children }) => {
     setEnableNotifications((prev) => !prev);
   };
 
+  const contextValue = {
+    enableNotifications,
+    toggleNotifications,
+  };
+
   return (
-    <NotificationContext.Provider value={{ enableNotifications, toggleNotifications }}>
+    <NotificationContext.Provider value={contextValue}>
       {children}
     </NotificationContext.Provider>
   );
@@ -19,8 +23,10 @@ export const NotificationProvider = ({ children }) => {
 
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
+
   if (!context) {
     throw new Error('useNotifications must be used within a NotificationProvider');
   }
+
   return context;
 };

@@ -1,27 +1,8 @@
-// Register.js
 import React, { useState } from 'react';
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { register } from '../../services/auth';
 import { ThemeProvider, useTheme } from '../../contexts/ThemeContext';
-
-const registerContainerStyle = {
-  textAlign: 'center',
-  margin: '20px',
-};
-
-const inputStyle = {
-  margin: '10px 0',
-  padding: '8px',
-  fontSize: '16px',
-};
-
-const buttonStyle = {
-  backgroundColor: '#4caf50',
-  color: 'white',
-  padding: '10px 20px',
-  fontSize: '16px',
-  border: 'none',
-  cursor: 'pointer',
-};
+import { Picker } from '@react-native-picker/picker';
 
 const Register = ({ onRegister }) => {
   const { theme, toggleTheme } = useTheme();
@@ -53,37 +34,92 @@ const Register = ({ onRegister }) => {
 
   return (
     <ThemeProvider>
-    <div style={{ ...registerContainerStyle, background: theme === 'light' ? '#fff' : '#333', color: theme === 'light' ? '#000' : '#fff' }}>
-      <h2>Register</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <label>Email: </label>
-      <input style={inputStyle} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <br />
-      <label>Password: </label>
-      <input style={inputStyle} type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <br />
-      <label>Confirm Password: </label>
-      <input
-        style={inputStyle}
-        type="password"
-        value={confirmPassword}
-        onChange={(e) => setConfirmPassword(e.target.value)}
-      />
-      <br />
-      <button style={buttonStyle} onClick={handleRegister}>
-        Register
-      </button>
-      {/* Theme Selector */}
-      <div>
-              <label>Theme:</label>
-              <select value={theme} onChange={toggleTheme}>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </div>
-    </div>
+      <View style={styles.registerContainer}>
+        <Text style={styles.heading}>Register</Text>
+        {error && <Text style={styles.error}>{error}</Text>}
+        <View style={styles.inputContainer}>
+          <Text>Email:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={(text) => setEmail(text)}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Text>Password:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your password"
+            secureTextEntry
+            value={password}
+            onChangeText={(text) => setPassword(text)}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Text>Confirm Password:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm your password"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={(text) => setConfirmPassword(text)}
+          />
+        </View>
+        <Button title="Register" onPress={handleRegister} />
+        {/* Theme Selector */}
+        <View style={styles.themeSelector}>
+          <Text>Theme:</Text>
+          <Picker
+            selectedValue={theme}
+            onValueChange={toggleTheme}
+            style={styles.picker}
+          >
+            <Picker.Item label="Light" value="light" />
+            <Picker.Item label="Dark" value="dark" />
+          </Picker>
+        </View>
+      </View>
     </ThemeProvider>
   );
 };
+
+const styles = StyleSheet.create({
+  registerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 20,
+  },
+  heading: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  error: {
+    color: 'red',
+    marginBottom: 10,
+  },
+  inputContainer: {
+    marginBottom: 10,
+    width: '100%',
+  },
+  input: {
+    margin: 10,
+    padding: 8,
+    fontSize: 16,
+    borderWidth: 1,
+    width: '100%',
+  },
+  themeSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  picker: {
+    height: 50,
+    width: 150,
+  },
+});
 
 export default Register;
