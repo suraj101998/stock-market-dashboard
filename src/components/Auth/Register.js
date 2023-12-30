@@ -1,6 +1,7 @@
 // Register.js
 import React, { useState } from 'react';
 import { register } from '../../services/auth';
+import { ThemeProvider, useTheme } from '../../contexts/ThemeContext';
 
 const registerContainerStyle = {
   textAlign: 'center',
@@ -23,6 +24,7 @@ const buttonStyle = {
 };
 
 const Register = ({ onRegister }) => {
+  const { theme, toggleTheme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -50,7 +52,8 @@ const Register = ({ onRegister }) => {
   };
 
   return (
-    <div style={registerContainerStyle}>
+    <ThemeProvider>
+    <div style={{ ...registerContainerStyle, background: theme === 'light' ? '#fff' : '#333', color: theme === 'light' ? '#000' : '#fff' }}>
       <h2>Register</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <label>Email: </label>
@@ -70,7 +73,16 @@ const Register = ({ onRegister }) => {
       <button style={buttonStyle} onClick={handleRegister}>
         Register
       </button>
+      {/* Theme Selector */}
+      <div>
+              <label>Theme:</label>
+              <select value={theme} onChange={toggleTheme}>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
     </div>
+    </ThemeProvider>
   );
 };
 

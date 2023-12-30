@@ -1,6 +1,7 @@
 // Login.js
 import React, { useState } from 'react';
 import { login } from '../../services/auth';
+import { ThemeProvider, useTheme } from '../../contexts/ThemeContext';
 
 const loginContainerStyle = {
   textAlign: 'center',
@@ -23,6 +24,7 @@ const buttonStyle = {
 };
 
 const Login = ({ onLogin, onToggleRegister }) => {
+  const { theme, toggleTheme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -37,7 +39,8 @@ const Login = ({ onLogin, onToggleRegister }) => {
   };
 
   return (
-    <div style={loginContainerStyle}>
+    <ThemeProvider>
+    <div style={{ ...loginContainerStyle, background: theme === 'light' ? '#fff' : '#333', color: theme === 'light' ? '#000' : '#fff' }}>
       <h2>Login</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <label>Email: </label>
@@ -59,7 +62,16 @@ const Login = ({ onLogin, onToggleRegister }) => {
           Register
         </button>
       </p>
+      {/* Theme Selector */}
+      <div>
+              <label>Theme:</label>
+              <select value={theme} onChange={toggleTheme}>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
     </div>
+    </ThemeProvider>
   );
 };
 

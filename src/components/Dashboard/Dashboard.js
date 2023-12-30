@@ -3,6 +3,8 @@ import StockWidget from './StockWidget';
 import { fetchRealTimeData } from '../../services/stockService';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { ThemeProvider, useTheme } from '../../contexts/ThemeContext';
+import { NotificationProvider, useNotifications } from '../../contexts/NotificationContext';
 
 const dashboardContainerStyle = {
   margin: '20px',
@@ -37,6 +39,8 @@ const buttonHoverStyle = {
 };
 
 const Dashboard = ({ onLogout }) => {
+  const { theme, toggleTheme } = useTheme();
+  const { enableNotifications, toggleNotifications } = useNotifications();
   const [allRealTimeData, setAllRealTimeData] = useState([]);
   const [displayedWidgets, setDisplayedWidgets] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -116,55 +120,89 @@ const Dashboard = ({ onLogout }) => {
   };
 
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div style={dashboardContainerStyle}>
-        <h2>Dashboard</h2>
-        <div>
-          <label>Search: </label>
-          <input style={inputStyle} type="text" value={searchTerm} onChange={handleSearch} />
-        </div>
-        <div>
-          <label>Sort By: </label>
-          <select style={selectStyle} value={sortBy} onChange={handleSort}>
-            <option value="symbol">Symbol</option>
-            <option value="latestPrice">Latest Price</option>
-          </select>
-          <select style={selectStyle} value={sortOrder} onChange={handleSortOrder}>
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
-        </div>
-        <div>
-          {displayedWidgets.map((stock, index) => (
-            <StockWidget
-              key={stock.symbol}
-              stock={stock}
-              index={index}
-              handleWidgetSelection={handleWidgetSelection}
-              isSelected={selectedWidgets.includes(stock.symbol)}
-              handleDragEnd={handleDragEnd}
-            />
-          ))}
-        </div>
-        <button
-          style={{ ...buttonStyle, ...(isButtonHovered && buttonHoverStyle) }}
-          onClick={onLogout}
-          onMouseOver={() => setIsButtonHovered(true)}
-          onMouseOut={() => setIsButtonHovered(false)}
-        >
-          Logout
-        </button>
-        <button
-          style={{ ...buttonStyle, backgroundColor: 'blue' }}
-          onClick={handleRemoveWidgets}
-          onMouseOver={() => setIsButtonHovered(true)}
-          onMouseOut={() => setIsButtonHovered(false)}
-        >
-          Remove Selected Widgets
-        </button>
-      </div>
-    </DndProvider>
+    <ThemeProvider>
+      <NotificationProvider>
+        <DndProvider backend={HTML5Backend}>
+          <div style={{ ...dashboardContainerStyle, background: theme === 'light' ? '#fff' : '#333', color: theme === 'light' ? '#000' : '#fff' }}>
+            <h2>Dashboard</h2>
+  
+            {/* Theme Selector */}
+            <div>
+              <label>Theme:</label>
+              <select value={theme} onChange={toggleTheme}>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+  
+            {/* Notifications Toggle */}
+            <div>
+              <label>Notifications:</label>
+              <input
+                type="checkbox"
+                checked={enableNotifications}
+                onChange={toggleNotifications}
+              />
+            </div>
+  
+            {/* Search */}
+            <div>
+              <label>Search: </label>
+              <input style={inputStyle} type="text" value={searchTerm} onChange={handleSearch} />
+            </div>
+  
+            {/* Sort By */}
+            <div>
+              <label>Sort By: </label>
+              <select style={selectStyle} value={sortBy} onChange={handleSort}>
+                <option value="symbol">Symbol</option>
+                <option value="latestPrice">Latest Price</option>
+              </select>
+              <select style={selectStyle} value={sortOrder} onChange={handleSortOrder}>
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </div>
+  
+            {/* Displayed Widgets */}
+            <div>
+              {displayedWidgets.map((stock, index) => (
+                <StockWidget
+                  key={stock.symbol}
+                  stock={stock}
+                  index={index}
+                  handleWidgetSelection={handleWidgetSelection}
+                  isSelected={selectedWidgets.includes(stock.symbol)}
+                  handleDragEnd={handleDragEnd}
+                />
+              ))}
+            </div>
+  
+            {/* Logout Button */}
+            <button
+              style={{ ...buttonStyle, ...(isButtonHovered && buttonHoverStyle) }}
+              onClick={onLogout}
+              onMouseOver={() => setIsButtonHovered(true)}
+              onMouseOut={() => setIsButtonHovered(false)}
+            >
+              Logout
+            </button>
+  
+            {/* Remove Selected Widgets Button */}
+            <button
+              style={{ ...buttonStyle, backgroundColor: 'blue', marginTop: '10px' }}
+              onClick={handleRemoveWidgets}
+              onMouseOver={() => setIsButtonHovered(true)}
+              onMouseOut={() => setIsButtonHovered(false)}
+            >
+              Remove Selected Widgets
+            </button>
+          </div>
+        </DndProvider>
+      </NotificationProvider>
+    </ThemeProvider>
   );
+  
 };
 
 export default Dashboard;
